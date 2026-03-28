@@ -245,13 +245,15 @@ public sealed class LinqExercises
     /// </summary>
     public IEnumerable<string> Task14_AverageGradePerCourse()
     {
-        return UniversityData.Enrollments.Join(
+        return UniversityData.Enrollments
+            .Where(en => en.FinalGrade != null)
+            .Join(
             UniversityData.Courses,
             en => en.CourseId,
             c => c.Id,
-            (en, c) => new { c.Title }
+            (en, c) => new { c.Title, en.FinalGrade }
             ).Where(c => c.Title != null).GroupBy(x => x.Title)
-            .Select(x => $"{x.Key}: {x.Count()}");
+            .Select(x => $"{x.Key}: {x.Average(x => x.FinalGrade)}");
     }
 
     /// <summary>
@@ -294,7 +296,19 @@ public sealed class LinqExercises
     /// </summary>
     public IEnumerable<string> Task16_HighestGradePerStudent()
     {
-        throw NotImplemented(nameof(Task16_HighestGradePerStudent));
+        return UniversityData.Students.Join(
+            UniversityData.Enrollments,
+            st => st.Id,
+            en => en.StudentId,
+            (st, en) => new
+            {
+                st.FirstName,
+                st.LastName,
+                en.FinalGrade
+            }
+            ).Where(en => en.FinalGrade != null)
+            .GroupBy(s => new {s.FirstName, s.LastName})
+            .Select(x => $"{x.Key} {x.Max(x => x.FinalGrade)}");
     }
 
     /// <summary>
